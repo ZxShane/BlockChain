@@ -1,0 +1,39 @@
+<html>
+  <body>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  </head>
+    <p>新建车辆</p>
+    <form action="/invoke" method="post">
+      <table>
+        <tr>
+          <th>属性</th>
+          <th>值</th>
+        </tr>
+        <tr>
+          <td>车辆ID: </td>
+          <td> <input value="" type="text" name="carID" ></input> </td>
+          <input type="hidden" name="func" value="createCar"></input>
+        </tr>
+        <tr>
+         <td> 厂商: </td>
+         <td> <input value="" type="text" name="make" ></input> </td>
+        </tr>
+        <tr>
+         <td> 型号: </td>
+         <td> <input value="" type="text" name="module" ></input> </td>
+        </tr>
+        <tr>
+         <td> 颜色: </td>
+         <td> <input value="" type="text" name="colour" ></input> </td>
+        </tr>
+        <tr>
+         <td> 车主: </td>
+         <td> <input value="" type="text" name="owner" ></input> </td>
+        </tr>
+
+       <tr> <td><input type="submit" value="确定" ></input> </td></tr>
+      </table>
+    </form>
+  </body>
+</html>
