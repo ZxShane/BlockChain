@@ -3,8 +3,8 @@ var invoke = require("./invokeExport.js");
 var express = require("express");
 var fs = require("fs");
 var bodyParser = require("body-parser")
-
 var app = express();
+
 app.use(bodyParser.urlencoded({
   extended: true
 }));
@@ -73,6 +73,11 @@ app.post('/invoke', function(request, response) {
              });
      }
 });
+app.use(cors({
+    origin:['http://localhost:8081'],
+    methods:['GET','POST'],
+    alloweHeaders:['Content-Type', 'Authorization']
+}));
 
 console.log("Listening on port 8080")
 app.listen(8080)
