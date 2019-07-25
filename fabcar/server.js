@@ -1,5 +1,5 @@
-var query = require("./queryExport.js");
-var invoke = require("./invokeExport.js");
+var query = require("./query.js");
+var invoke = require("./create.js");
 var express = require("express");
 var fs = require("fs");
 var cors = require('cors')
@@ -11,6 +11,7 @@ app.use(cors())
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+app.use(express.json());
 
 app.get('/queryCar', function(request, response) {
     response.writeHead(200, {"Content-Type":"text/html"});
@@ -36,10 +37,25 @@ app.get('/changeOwner', function(request, response) {
     });
 });
 
-app.post('/queryCar', function(request, response) {
-    car = request.body.car;
-    query.queryCAR(car)
-         .then((result) => {
+app.post('/queryMER', function(request, response) {
+    var patientId = request.body.patientId;
+    console.log(request.body)
+    // response.write(request.body)
+    console.log(patientId)
+    query.queryMER(patientId).then((result) => {
+             response.writeHead(200, {'Content-type': 'application/json'});
+             console.log(result)
+             if (result.length == 0){
+                 result = "car not found!" 
+             }
+            //  response.write(JSON.stringify({patientId,result}));
+            response.write(JSON.stringify(result[0]))
+             response.end();
+          });
+});
+app.post('/create', function(request, response) {
+    args = request.body.args;
+    query.create(args).then((result) => {
              response.writeHead(200, {'Content-type': 'application/json'});
              if (result.length == 0){
                  result = "car not found!" 
@@ -48,7 +64,6 @@ app.post('/queryCar', function(request, response) {
              response.end();
           });
 });
-
 app.post('/invoke', function(request, response) {
     func = request.body.func
     console.log(func)

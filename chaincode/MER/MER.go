@@ -70,38 +70,39 @@ type PatientPersonalDescription struct{
 
 
  //链代码初始化函数
- func (t *merChaincode) Init(stub shim.ChaincodeStubInterface)  pb.Response {
+ func (t *merChaincode) Init(APIstub shim.ChaincodeStubInterface)  pb.Response {
 	fmt.Println("Patient Init Success")
 	return shim.Success(nil)
 }
 
 //Invoke 函数
-func (t *merChaincode)  Invoke(stub shim.ChaincodeStubInterface)  pb.Response {
-	function, args := stub.GetFunctionAndParameters()
+func (t *merChaincode)  Invoke(APIstub shim.ChaincodeStubInterface)  pb.Response {
+	function, args := APIstub.GetFunctionAndParameters()
 	
 	//根据function 参数值调用相应的处理函数
 	if  function == "create"{
-		return t.create(stub,args)
+		return t.create(APIstub,args)
 	} else if function == "isAllowQueryUserContent" {
-		return t.isAllowQueryUserContent(stub,args)
+		return t.isAllowQueryUserContent(APIstub,args)
 	}  else  if  function == "patientRegistration" {
-		return  t.patientRegistration(stub, args)
+		return  t.patientRegistration(APIstub, args)
 	}
 	return shim.Error("没找到对应方法~")
 }
 
 //是否可被查询
-func (t *merChaincode)  isAllowQueryUserContent(stub shim.ChaincodeStubInterface,args [] string)  pb.Response{
+func (t *merChaincode)  isAllowQueryUserContent(APIstub shim.ChaincodeStubInterface,args [] string)  pb.Response{
     // 只有一个参数 即身份证号
 	patientId := args[0]
 	//查询账本中有无该用户
-	patientAsBytes, err := stub.GetState(patientId)
+	patientAsBytes, err := APIstub.GetState(patientId)
 	if err != nil {
 		return shim.Error(err.Error())
 	}else if patientAsBytes == nil {
 		return shim.Error("该用户不存在~")
 	  }
 	  
+	  /*
 	  //查询有此人 获取查询权值进行判断
 	 patientInstance := Patient{}
 	 err = json.Unmarshal(patientAsBytes ,  &patientInstance)
@@ -114,16 +115,18 @@ func (t *merChaincode)  isAllowQueryUserContent(stub shim.ChaincodeStubInterface
 	 } else {
          return shim.Error("不可被查询！！")
 	 }
+	 */
+	 return shim.Success(patientAsBytes)
      
 }
 
 
 //是否可被修改
-func (t *merChaincode)  isAllowAppendUserContent(stub shim.ChaincodeStubInterface,args [] string)  pb.Response{
+func (t *merChaincode)  isAllowAppendUserContent(APIstub shim.ChaincodeStubInterface,args [] string)  pb.Response{
     // 只有一个参数 即身份证号
 	patientId := args[0]
 	//查询账本中有无该用户
-	patientAsBytes, err := stub.GetState(patientId)
+	patientAsBytes, err := APIstub.GetState(patientId)
 	if err != nil {
 		return shim.Error(err.Error())
 	}else if patientAsBytes == nil {
@@ -148,13 +151,13 @@ func (t *merChaincode)  isAllowAppendUserContent(stub shim.ChaincodeStubInterfac
 
 
 // 解锁用户病历的可修改 可增加权限
-func (t *merChaincode)  patientRegistration(stub shim.ChaincodeStubInterface,args [] string)  pb.Response{
+func (t *merChaincode)  patientRegistration(APIstub shim.ChaincodeStubInterface,args [] string)  pb.Response{
 	 
 	 //三个参数  都为 int 类型 改变 AllowQuery 和 AllowAppend 字段
 	 
 	 patientId := args[0]
 	 //查询账本中有无该用户
-	patientAsBytes, err := stub.GetState(patientId)
+	patientAsBytes, err := APIstub.GetState(patientId)
 	if err != nil {
 		return shim.Error(err.Error())
 	}else if patientAsBytes == nil {
@@ -174,7 +177,7 @@ func (t *merChaincode)  patientRegistration(stub shim.ChaincodeStubInterface,arg
 	patientChanged.AllowAppend = new_AppendState
 
 	patientJsonAsBytes , _ := json.Marshal(patientChanged)
-	err = stub.PutState(patientId , patientJsonAsBytes)
+	err = APIstub.PutState(patientId , patientJsonAsBytes)
     if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -183,7 +186,7 @@ func (t *merChaincode)  patientRegistration(stub shim.ChaincodeStubInterface,arg
 
 
 //为患者创建新病历
-func (t *merChaincode)  create(stub shim.ChaincodeStubInterface,args [] string)  pb.Response {
+func (t *merChaincode)  create(APIstub shim.ChaincodeStubInterface,args [] string)  pb.Response {
 	fmt.Println("create  start")
 	
 	
@@ -191,7 +194,7 @@ func (t *merChaincode)  create(stub shim.ChaincodeStubInterface,args [] string) 
 	patientId := args[0]
 
 	//查询账本中有无该用户
-	patientIdAsBytes, err := stub.GetState(patientId)
+	patientIdAsBytes, err := APIstub.GetState(patientId)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -200,13 +203,13 @@ func (t *merChaincode)  create(stub shim.ChaincodeStubInterface,args [] string) 
 		return shim.Error("该用户的病历已经存在，无需创建新病历！！")
 	  }
 	
-	time,err := strconv.ParseInt(args[0] ,10,64)
+	time,err := strconv.ParseInt(args[1] ,10,64)
 	objectType := "patient"
-	name := args[1]
-	gender := args[2]
-	birthday := args[3]
-	nation := args[4]
-	homeAddress := args[5]
+	name := args[2]
+	gender := args[3]
+	birthday := args[4]
+	nation := args[5]
+	homeAddress := args[6]
 
 	allowquery,err := strconv.Atoi(args[7])
 	allowappend,err := strconv.Atoi(args[8])
@@ -218,7 +221,7 @@ func (t *merChaincode)  create(stub shim.ChaincodeStubInterface,args [] string) 
 	
 	patientJSONasBytes, err := json.Marshal(patient)
 	//写入账本
-	err = stub.PutState(patientId,patientJSONasBytes)
+	err = APIstub.PutState(patientId,patientJSONasBytes)
 	if err != nil{
 		return shim.Error(err.Error())
 	}
