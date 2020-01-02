@@ -1,0 +1,115 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+services:
+  orderer.c4BlockChain.com:      # docker-compose-cli.yaml中的order服务就是继承于本文件的该服务
+    container_name: orderer.c4BlockChain.com
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0    #监听本机地址,如果是0会自动读取网卡,识别实际的IP
+      - ORDERER_GENERAL_GENESISMETHOD=file       #生成创始区块的数据来源
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block  #来自具体哪个文件
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP    #当前节点属于哪个组织ID
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      # enabled TLS
+#      - ORDERER_GENERAL_TLS_ENABLED=false
+#      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+#      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+#      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/c4BlockChain.com/orderers/orderer.c4BlockChain.com/msp:/var/hyperledger/orderer/msp
+    - ../crypto-config/ordererOrganizations/c4BlockChain.com/orderers/orderer.c4BlockChain.com/tls/:/var/hyperledger/orderer/tls
+    - orderer.c4BlockChain.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.youai.c4BlockChain.com:
+    container_name: peer0.youai.c4BlockChain.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.youai.c4BlockChain.com    #指定当前peer节点的名字
+      - CORE_PEER_ADDRESS=peer0.youai.c4BlockChain.com:7051   #当前peer节点的访问地址
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.youai.c4BlockChain.com:7051 # 当该peer节点启动时，将自动连接的peer节点的地址。可以连接自己，也可以连接别人（同组的其他peer节点）
+       # 设置当前节点是否被外部感知, 如果想, 就指定自己的地址, 如果不想不用指定了
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.youai.c4BlockChain.com:7051
+      - CORE_PEER_LOCALMSPID=youaiMSP  #当前peer所属的组织的ID
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/youai.c4BlockChain.com/peers/peer0.youai.c4BlockChain.com/msp:/etc/hyperledger/fabric/msp   # 当前peer节点的证书（身份信息）路径挂载到容器中
+        - ../crypto-config/peerOrganizations/youai.c4BlockChain.com/peers/peer0.youai.c4BlockChain.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.youai.c4BlockChain.com:/var/hyperledger/production
+    ports:
+      - 7051:7051      
+      - 7053:7053  
+
+  peer1.youai.c4BlockChain.com:
+    container_name: peer1.youai.c4BlockChain.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.youai.c4BlockChain.com    
+      - CORE_PEER_ADDRESS=peer1.youai.c4BlockChain.com:7051   
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.youai.c4BlockChain.com:7051 
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.youai.c4BlockChain.com:7051
+      - CORE_PEER_LOCALMSPID=youaiMSP 
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/youai.c4BlockChain.com/peers/peer1.youai.c4BlockChain.com/msp:/etc/hyperledger/fabric/msp 
+        - ../crypto-config/peerOrganizations/youai.c4BlockChain.com/peers/peer1.youai.c4BlockChain.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.youai.c4BlockChain.com:/var/hyperledger/production
+    ports:
+      - 8051:7051      
+      - 8053:7053  
+
+
+  peer0.renai.c4BlockChain.com:
+    container_name: peer0.renai.c4BlockChain.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.renai.c4BlockChain.com
+      - CORE_PEER_ADDRESS=peer0.renai.c4BlockChain.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.renai.c4BlockChain.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.renai.c4BlockChain.com:7051
+      - CORE_PEER_LOCALMSPID=renaiMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/renai.c4BlockChain.com/peers/peer0.renai.c4BlockChain.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/renai.c4BlockChain.com/peers/peer0.renai.c4BlockChain.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.renai.c4BlockChain.com:/var/hyperledger/production
+    ports:
+      - 9051:7051
+      - 9053:7053
+
+  peer1.renai.c4BlockChain.com:
+    container_name: peer1.renai.c4BlockChain.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.renai.c4BlockChain.com
+      - CORE_PEER_ADDRESS=peer1.renai.c4BlockChain.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.renai.c4BlockChain.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.renai.c4BlockChain.com:7051
+      - CORE_PEER_LOCALMSPID=renaiMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/renai.c4BlockChain.com/peers/peer1.renai.c4BlockChain.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/renai.c4BlockChain.com/peers/peer1.renai.c4BlockChain.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.renai.c4BlockChain.com:/var/hyperledger/production
+    ports:
+      - 10051:7051
+      - 10053:7053
+

@@ -1,0 +1,90 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.c4BlockChain.com:
+  peer0.youai.c4BlockChain.com: 
+  peer1.youai.c4BlockChain.com:
+  peer0.renai.c4BlockChain.com:
+  peer1.renai.c4BlockChain.com:
+
+networks:
+  byfn:
+services:
+  ca0:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-youaiMSP
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.youai.c4BlockChain.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.youai.c4BlockChain.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/youai.c4BlockChain.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_youaiMSP
+    networks:
+      - byfn
+
+  ca1:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-renaiMSP
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.renai.c4BlockChain.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/CA2_PRIVATE_KEY
+    ports:
+      - "8054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.renai.c4BlockChain.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/CA2_PRIVATE_KEY -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/renai.c4BlockChain.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_renaiMSP
+    networks:
+      - byfn
+
+  orderer.c4BlockChain.com:
+    extends:
+      file:   base/docker-compose-base.yaml
+      service: orderer.c4BlockChain.com
+    container_name: orderer.c4BlockChain.com
+    networks:
+      - byfn
+
+  peer0.youai.c4BlockChain.com:
+    container_name: peer0.youai.c4BlockChain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.youai.c4BlockChain.com
+    networks:
+      - byfn
+
+  peer1.youai.c4BlockChain.com:
+    container_name: peer1.youai.c4BlockChain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.youai.c4BlockChain.com
+    networks:
+      - byfn
+
+  peer0.renai.c4BlockChain.com:
+    container_name: peer0.renai.c4BlockChain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.renai.c4BlockChain.com
+    networks:
+      - byfn
+
+  peer1.renai.c4BlockChain.com:
+    container_name: peer1.renai.c4BlockChain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.renai.c4BlockChain.com
+    networks:
+      - byfn

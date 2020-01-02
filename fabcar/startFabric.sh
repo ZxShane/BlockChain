@@ -11,10 +11,10 @@ set -e
 export MSYS_NO_PATHCONV=1
 starttime=$(date +%s)
 LANGUAGE=${1:-"golang"}
-CC_SRC_PATH=github.com/fabcar/go
-if [ "$LANGUAGE" = "node" -o "$LANGUAGE" = "NODE" ]; then
-	CC_SRC_PATH=/opt/gopath/src/github.com/fabcar/node
-fi
+CC_SRC_PATH=github.com/MER
+# if [ "$LANGUAGE" = "node" -o "$LANGUAGE" = "NODE" ]; then
+# 	CC_SRC_PATH=/opt/gopath/src/github.com/fabcar/node
+# fi
 
 # clean the keystore
 rm -rf ./hfc-key-store

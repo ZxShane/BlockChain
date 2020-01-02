@@ -1,0 +1,102 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.c4BlockChain.com:
+  peer0.youai.c4BlockChain.com: 
+  peer1.youai.c4BlockChain.com:
+  peer0.renai.c4BlockChain.com:
+  peer1.renai.c4BlockChain.com:
+
+networks:
+  byfn:
+
+services:   # 服务  其中每个服务都对应一个docker容器
+
+  orderer.c4BlockChain.com:
+    extends:
+      file:   base/docker-compose-base.yaml
+      service: orderer.c4BlockChain.com
+    container_name: orderer.c4BlockChain.com  # 自定义orderer节点容器的容器名
+    networks:   # 该容器所处的网络
+      - byfn
+
+  peer0.youai.c4BlockChain.com:   # 组织1中peer0节点的服务名
+    container_name: peer0.youai.c4BlockChain.com      # 组织1中peer0节点的容器名设置
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.youai.c4BlockChain.com
+    networks:
+      - byfn
+
+  peer1.youai.c4BlockChain.com:
+    container_name: peer1.youai.c4BlockChain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.youai.c4BlockChain.com
+    networks:
+      - byfn
+
+
+  peer0.renai.c4BlockChain.com:
+    container_name: peer0.renai.c4BlockChain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.renai.c4BlockChain.com
+    networks:
+      - byfn
+
+  peer1.renai.c4BlockChain.com:
+    container_name: peer1.renai.c4BlockChain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.renai.c4BlockChain.com
+    networks:
+      - byfn
+
+  cli:     # 客户端节点 
+    container_name: cli  # 启动后客户端容器名
+    image: hyperledger/fabric-tools:$IMAGE_TAG  # 客户端容器依赖的镜像名
+    tty: true       # 是否与一个终端绑定 用于人机交互
+    stdin_open: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock   #套接字文件
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO    #日志级别,critical,error,warning,notice,info,debug从高到低
+      - CORE_PEER_ID=cli      #当前节点的ID即名字
+      - CORE_PEER_ADDRESS=peer0.youai.c4BlockChain.com:7051   # 客户端启动后会根据这个配置自动连接到某个peer节点上
+      - CORE_PEER_LOCALMSPID=youaiMSP      #连接peer节点所属的组织
+      - CORE_PEER_TLS_ENABLED=false        #是否使用TLS加密,true时下面的3个文件才生效 
+         # 通信时使用的TLS证书, .crt证书, .key密钥
+#      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/youai.c4BlockChain.com/peers/peer0.youai.c4BlockChain.com/tls/server.crt
+         # 通信时使用的TLS密钥 
+#      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/youai.c4BlockChain.com/peers/peer0.youai.c4BlockChain.com/tls/server.key
+       # TLS根证书文件      
+#      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/youai.c4BlockChain.com/peers/peer0.youai.c4BlockChain.com/tls/ca.crt
+         # 客户端角色,连接网络访问节点,需要账号 
+         # 普通帐号： 交易（写数据）查询(读数据)
+         # 管理员帐号： 交易 查询 创建通道，让某个节点加入到通道 安装链码 链码初始化
+         # 这是一个非常重要的环境变量。因为该客户端想要连接网络必须有一个用户的身份。假设客户端启动后要连接到组织1中的peer节点peer0，那以什么身份去连接呢？要以组织下的user节点的身份去连接
+         # 这里就是从该组织下的users路径下选择一个user节点的msp路径，来设置该客户端的访问身份。
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/youai.c4BlockChain.com/users/Admin@youai.c4BlockChain.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer    # 当使用者进入容器后所处于的进程路径。相当于cd到这个路径下。
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./../chaincode/:/opt/gopath/src/github.com/chaincode
+        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.c4BlockChain.com
+      - peer0.youai.c4BlockChain.com
+      - peer1.youai.c4BlockChain.com
+      - peer0.renai.c4BlockChain.com
+      - peer1.renai.c4BlockChain.com
+    networks:
+      - byfn

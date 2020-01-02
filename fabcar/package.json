@@ -1,25 +1,26 @@
 {
-    "name": "fabcar",
-    "version": "1.0.0",
-    "description": "Hyperledger Fabric Car Sample Application",
-    "main": "fabcar.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "dependencies": {
-        "express": "^4.16.2",
-        "fabric-ca-client": "^2.0.0-snapshot.255",
-        "fabric-client": "unstable",
-        "fabric-common": "^1.4.4",
-        "fabric-protos": "^2.0.0-snapshot.1",
-        "grpc": "^1.6.0"
-    },
-    "license": "Apache-2.0",
-    "keywords": [
-        "Hyperledger",
-        "Fabric",
-        "Car",
-        "Sample",
-        "Application"
-    ]
+  "name": "fabcar",
+  "version": "1.0.0",
+  "description": "Hyperledger Fabric Car Sample Application",
+  "main": "fabcar.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@alicloud/pop-core": "^1.7.7",
+    "cors": "^2.8.5",
+    "express": "^4.16.2",
+    "fabric-ca-client": "^1.2.0",
+    "fabric-client": "^1.2.0",
+    "grpc": "^1.22.2",
+    "node-rsa": "^1.0.5"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "Hyperledger",
+    "Fabric",
+    "Car",
+    "Sample",
+    "Application"
+  ]
 }

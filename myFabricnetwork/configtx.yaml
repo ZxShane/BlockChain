@@ -1,0 +1,119 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+---
+
+################################################################################
+#
+#     Section: Organizations
+################################################################################
+Organizations:
+
+    ###  orderer 节点配置信息
+    - &OrdererOrg    
+        Name: OrdererOrg     ##节点名称
+        ID: OrdererMSP       ##节点编号
+        MSPDir: crypto-config/ordererOrganizations/c4BlockChain.com/msp
+
+     ###  orderer 节点中包含的组织 如果有多个组织可以配置多个
+    - &youaiHospital
+        Name: youaiMSP       ##组织名称
+        ID: youaiMSP                  ##组织编号     
+        MSPDir: crypto-config/peerOrganizations/youai.c4BlockChain.com/msp
+        AnchorPeers:
+              ####  锚节点实现不同组织间的通信  下面信息是组织的访问域名和端口
+            - Host: peer0.youai.c4BlockChain.com 
+              Port: 7051
+
+    - &renaiHospital
+        Name: renaiMSP       ##组织名称
+        ID: renaiMSP                  ##组织编号     
+        MSPDir: crypto-config/peerOrganizations/renai.c4BlockChain.com/msp
+        AnchorPeers:
+              ####  锚节点实现不同组织间的通信  下面信息是组织的访问域名和端口
+            - Host: peer0.renai.c4BlockChain.com 
+              Port: 7051
+
+
+################################################################################
+#
+#   SECTION: Capabilities
+#
+################################################################################
+Capabilities: 
+   Global: &ChannelCapabilities
+        V1_1: true
+
+   Orderer: &OrdererCapabilities
+        V1_1: true
+
+   Application: &ApplicationCapabilities
+        V1_2: true
+
+################################################################################
+#
+#   SECTION: Application
+################################################################################
+Application: &ApplicationDefaults
+
+    Organizations:
+    
+################################################################################
+#
+#   SECTION: Orderer
+#
+#   orderer 节点的配置信息
+#
+################################################################################
+Orderer: &OrdererDefaults   # 变量名，可自定义
+
+    OrdererType: solo           ### 由于是测试环境 故选择solo模式
+    Addresses:
+        - orderer.c4BlockChain.com:7050          ### orderer监听地址
+# 生成区块的三个条件: 只要有一满足条件就可以
+
+    BatchTimeout: 2s         # 每隔多长时间生成一个区块
+    BatchSize:
+        MaxMessageCount: 10         # 消息>=10条, 会生成一个区块
+        AbsoluteMaxBytes: 99 MB     # 消息的总大小 >=99M, 会生成一个区块
+        PreferredMaxBytes: 512 KB   # 建议的区块大小
+
+################################################################################
+#
+#   Profile
+#
+#   configtxgen 模块用来生成order的初始化文件和channel的初始化文件
+#                      以下部分定义了整个系统的配置信息
+#                    
+################################################################################
+Profiles:      # 关键字
+
+    myGenesis:     # 创始区块信息,任一起名
+        Capabilities:
+            <<: *ChannelCapabilities
+        Orderer:                     ## orderer配置属性 系统关键字不得更改
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:                 ##  联盟-关键字  定义了系统中包含的组织
+            MedicalConsortium:        # 联盟的名字, 可以改
+                Organizations:
+                    - *youaiHospital
+                    - *renaiHospital
+          
+    
+##   下面是channel的配置信息   关于通道的信息, 创建通道时候使用
+    myChannel:      # 通道的名字，可自定义
+        Consortium: MedicalConsortium      # 当前通道属于哪个联盟
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *youaiHospital
+                - *renaiHospital
+            Capabilities:
+                <<: *ApplicationCapabilities
+
