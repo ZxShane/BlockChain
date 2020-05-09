@@ -3,8 +3,8 @@ const Core = require('@alicloud/pop-core');
 function sendMessage(number,code)
 {
 	var client = new Core({
-		accessKeyId: 'LTAI4FdFxdWgYzyW7689Fahi',
-		accessKeySecret: 'cfz9yLqo5ArrNli1tvyty0V1cduaAJ',
+		accessKeyId: '00000',
+		accessKeySecret: '000000',
 		endpoint: 'https://dysmsapi.aliyuncs.com',
 		apiVersion: '2017-05-25'
 	  });
